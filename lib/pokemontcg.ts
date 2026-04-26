@@ -124,7 +124,7 @@ async function convertOffersToGbp(offers: MarketplaceOffer[]) {
 
   const rates = new Map(entries);
 
-  return offers.map((offer) => {
+  return offers.map((offer): MarketplaceOffer => {
     if (offer.currency === "GBP") {
       return offer;
     }
@@ -137,7 +137,7 @@ async function convertOffersToGbp(offers: MarketplaceOffer[]) {
 
     return {
       ...offer,
-      currency: "GBP",
+      currency: "GBP" as const,
       price: Number((offer.price * rate).toFixed(2)),
       sourceCurrency: offer.currency,
       sourcePrice: offer.price,
