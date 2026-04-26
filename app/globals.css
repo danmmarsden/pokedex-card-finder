@@ -52,7 +52,7 @@ input {
 
 .hero {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr;
+  grid-template-columns: 1fr;
   gap: 24px;
   align-items: stretch;
 }
@@ -99,48 +99,6 @@ input {
   line-height: 0.94;
   letter-spacing: -0.05em;
   max-width: 10ch;
-}
-
-.hero p {
-  margin: 0;
-  max-width: 62ch;
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.hero-badges {
-  margin-top: 22px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.hero-badges span {
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid var(--line);
-}
-
-.aside-card {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.price-stat {
-  padding: 18px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, rgba(12, 140, 106, 0.14), rgba(12, 140, 106, 0.06));
-  border: 1px solid rgba(12, 140, 106, 0.2);
-}
-
-.price-stat strong {
-  display: block;
-  font-size: 2rem;
-  margin-top: 6px;
 }
 
 .main-grid {
@@ -238,6 +196,8 @@ input {
 .preview {
   width: 100%;
   aspect-ratio: 4 / 5;
+  max-height: 420px;
+  padding: 12px;
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(12, 140, 106, 0.08), rgba(24, 34, 48, 0.04));
   display: grid;
@@ -248,7 +208,7 @@ input {
 .preview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .results-header {
@@ -289,9 +249,12 @@ input {
 .card-art {
   width: 100%;
   aspect-ratio: 0.72;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 10px;
   border-radius: 16px;
-  background: rgba(24, 34, 48, 0.06);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 239, 226, 0.92)),
+    rgba(24, 34, 48, 0.06);
 }
 
 .card-art-fallback {
@@ -371,5 +334,29 @@ input {
 
   .hero h1 {
     max-width: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    width: min(100% - 20px, 1180px);
+    padding: 20px 0 48px;
+  }
+
+  .hero-card,
+  .panel {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .preview {
+    aspect-ratio: 4 / 3;
+    max-height: 280px;
+    padding: 10px;
+  }
+
+  .card-art {
+    max-height: 320px;
+    padding: 8px;
   }
 }

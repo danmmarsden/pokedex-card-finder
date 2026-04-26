@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ChangeEvent, FormEvent, useRef, useState } from "react";
-import { CardResult, IdentificationResult } from "@/lib/types";
+import { CardResult, CurrencyCode, IdentificationResult } from "@/lib/types";
 
 type SearchResponse = {
   cards?: CardResult[];
@@ -42,8 +42,10 @@ function CardArt({ card }: { card: CardResult }) {
   );
 }
 
-function formatAmount(value: number, currency: "USD" | "EUR") {
-  return new Intl.NumberFormat(currency === "USD" ? "en-US" : "de-DE", {
+function formatAmount(value: number, currency: CurrencyCode) {
+  const locale = currency === "EUR" ? "de-DE" : "en-GB";
+
+  return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
     maximumFractionDigits: 2,
@@ -140,42 +142,13 @@ export default function HomePage() {
     }
   }
 
-  const bestOffer = cards[0]?.cheapestOffer ?? null;
-
   return (
     <main className="page-shell">
       <section className="hero">
         <div className="hero-card">
           <span className="eyebrow">Pokemon card deal finder</span>
           <h1>Spot the card. Find the cheapest listing.</h1>
-          <p>
-            Search by Pokemon name or snap a card photo from your camera or camera roll. The app
-            identifies likely matches, checks marketplace pricing, and pulls the cheapest known
-            offers to the top.
-          </p>
-          <div className="hero-badges">
-            <span>Name lookup</span>
-            <span>Camera upload</span>
-            <span>AI card identification</span>
-            <span>Price-ranked results</span>
-          </div>
         </div>
-
-        <aside className="hero-card aside-card">
-          <div>
-            <span className="eyebrow">Best current result</span>
-            <div className="price-stat">
-              <div className="meta">Cheapest surfaced offer</div>
-              <strong>
-                {bestOffer ? formatAmount(bestOffer.price, bestOffer.currency) : "Waiting for a search"}
-              </strong>
-            </div>
-          </div>
-          <p className="fine-print">
-            Cheapest ranking prefers TCGplayer pricing so results stay in one marketplace currency.
-            Availability and shipping can still change before checkout.
-          </p>
-        </aside>
       </section>
 
       <section className="main-grid">
@@ -258,7 +231,7 @@ export default function HomePage() {
             <div>
               <h2>Cheapest matches</h2>
               <p>Results are sorted by the lowest available marketplace price we can find.</p>
-              <p className="fine-print">Primary ranking uses TCGplayer data when available.</p>
+              <p className="fine-print">Primary ranking uses TCGplayer data when available, converted to GBP.</p>
             </div>
             {identification ? (
               <div className="pill">
@@ -311,7 +284,12 @@ export default function HomePage() {
                 <div className="offer-list">
                   {card.offers.map((offer) => (
                     <div className="offer" key={`${card.id}-${offer.label}`}>
-                      <span>{offer.label}</span>
+                      <span>
+                        {offer.label}
+                        {offer.sourceCurrency && offer.sourcePrice
+                          ? ` · ${formatAmount(offer.sourcePrice, offer.sourceCurrency)} original`
+                          : ""}
+                      </span>
                       <strong>{formatAmount(offer.price, offer.currency)}</strong>
                     </div>
                   ))}
