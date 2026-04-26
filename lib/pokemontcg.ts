@@ -1,4 +1,4 @@
-import { CardResult, IdentificationResult, MarketplaceOffer } from "@/lib/types";
+import { CardResult, CurrencyCode, IdentificationResult, MarketplaceOffer } from "@/lib/types";
 
 type PokemonTcgCard = {
   id: string;
@@ -24,6 +24,7 @@ type PokemonTcgCard = {
 };
 
 const API_URL = "https://api.pokemontcg.io/v2/cards";
+const FX_API_URL = "https://api.frankfurter.dev/v1/latest";
 
 function buildHeaders() {
   const apiKey = process.env.POKEMON_TCG_API_KEY;
@@ -84,6 +85,66 @@ function collectOffers(card: PokemonTcgCard): MarketplaceOffer[] {
   return preferred.sort((a, b) => a.price - b.price);
 }
 
+async function fetchGbpRate(base: Exclude<CurrencyCode, "GBP">) {
+  const url = new URL(FX_API_URL);
+  url.searchParams.set("base", base);
+  url.searchParams.set("symbols", "GBP");
+
+  const response = await fetch(url.toString(), {
+    next: { revalidate: 43200 },
+  });
+
+  if (!response.ok) {
+    throw new Error(`FX API request failed with ${response.status}.`);
+  }
+
+  const json = (await response.json()) as { rates?: { GBP?: number } };
+  const rate = json.rates?.GBP;
+
+  if (typeof rate !== "number" || Number.isNaN(rate) || rate <= 0) {
+    throw new Error(`FX API did not return a valid GBP rate for ${base}.`);
+  }
+
+  return rate;
+}
+
+async function convertOffersToGbp(offers: MarketplaceOffer[]) {
+  const currencies = [...new Set(offers.map((offer) => offer.currency).filter((currency) => currency !== "GBP"))] as Exclude<
+    CurrencyCode,
+    "GBP"
+  >[];
+
+  if (currencies.length === 0) {
+    return offers;
+  }
+
+  const entries = await Promise.all(
+    currencies.map(async (currency) => [currency, await fetchGbpRate(currency)] as const),
+  );
+
+  const rates = new Map(entries);
+
+  return offers.map((offer) => {
+    if (offer.currency === "GBP") {
+      return offer;
+    }
+
+    const rate = rates.get(offer.currency);
+
+    if (!rate) {
+      return offer;
+    }
+
+    return {
+      ...offer,
+      currency: "GBP",
+      price: Number((offer.price * rate).toFixed(2)),
+      sourceCurrency: offer.currency,
+      sourcePrice: offer.price,
+    };
+  });
+}
+
 function quoteValue(value: string) {
   return `"${value.replace(/"/g, '\\"')}"`;
 }
@@ -130,8 +191,8 @@ async function fetchCards(query: string) {
   return json.data ?? [];
 }
 
-function toCardResult(card: PokemonTcgCard): CardResult {
-  const offers = collectOffers(card);
+async function toCardResult(card: PokemonTcgCard): Promise<CardResult> {
+  const offers = await convertOffersToGbp(collectOffers(card));
 
   return {
     id: card.id,
@@ -151,7 +212,7 @@ export async function searchCardsByPokemonName(name: string) {
   const query = buildSearchExpression({ pokemonName: name });
   const cards = await fetchCards(query);
 
-  return cards.map(toCardResult).sort((a, b) => {
+  return (await Promise.all(cards.map(toCardResult))).sort((a, b) => {
     const aPrice = a.cheapestOffer?.price ?? Number.POSITIVE_INFINITY;
     const bPrice = b.cheapestOffer?.price ?? Number.POSITIVE_INFINITY;
     return aPrice - bPrice;
@@ -166,7 +227,7 @@ export async function searchCardsByIdentification(identification: Identification
     cards = await fetchCards(buildSearchExpression({ pokemonName: identification.pokemonName }));
   }
 
-  return cards.map(toCardResult).sort((a, b) => {
+  return (await Promise.all(cards.map(toCardResult))).sort((a, b) => {
     const aPrice = a.cheapestOffer?.price ?? Number.POSITIVE_INFINITY;
     const bPrice = b.cheapestOffer?.price ?? Number.POSITIVE_INFINITY;
     return aPrice - bPrice;

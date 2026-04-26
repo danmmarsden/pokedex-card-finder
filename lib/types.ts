@@ -1,9 +1,13 @@
+export type CurrencyCode = "USD" | "EUR" | "GBP";
+
 export type MarketplaceOffer = {
   label: string;
   source: string;
-  currency: "USD" | "EUR";
+  currency: CurrencyCode;
   price: number;
   url: string | null;
+  sourceCurrency?: Exclude<CurrencyCode, "GBP">;
+  sourcePrice?: number;
 };
 
 export type CardResult = {
