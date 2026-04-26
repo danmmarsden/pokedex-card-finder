@@ -39,6 +39,7 @@ async function identifyCardFromImage(file: File): Promise<IdentificationResult> 
           {
             type: "input_image",
             image_url: dataUrl,
+            detail: "high",
           },
         ],
       },
