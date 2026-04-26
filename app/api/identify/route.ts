@@ -6,10 +6,6 @@ import { IdentificationResult } from "@/lib/types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 function cleanJson(text: string) {
   return text.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
 }
@@ -18,6 +14,10 @@ async function identifyCardFromImage(file: File): Promise<IdentificationResult> 
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not configured.");
   }
+
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
   const bytes = Buffer.from(await file.arrayBuffer());
   const mimeType = file.type || "image/jpeg";
@@ -39,6 +39,7 @@ async function identifyCardFromImage(file: File): Promise<IdentificationResult> 
           {
             type: "input_image",
             image_url: dataUrl,
+            detail: "auto",
           },
         ],
       },
