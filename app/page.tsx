@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ChangeEvent, FormEvent, useRef, useState } from "react";
 import { CardResult, IdentificationResult } from "@/lib/types";
 
@@ -13,6 +14,33 @@ type IdentifyResponse = {
   cards?: CardResult[];
   error?: string;
 };
+
+function CardArt({ card }: { card: CardResult }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (!card.image || imageFailed) {
+    return (
+      <div className="card-art card-art-fallback">
+        <span>{card.name}</span>
+        <small>
+          {card.setName} #{card.collectorNumber}
+        </small>
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      className="card-art"
+      src={card.image}
+      alt={card.name}
+      width={734}
+      height={1024}
+      unoptimized
+      onError={() => setImageFailed(true)}
+    />
+  );
+}
 
 function formatAmount(value: number, currency: "USD" | "EUR") {
   return new Intl.NumberFormat(currency === "USD" ? "en-US" : "de-DE", {
@@ -259,7 +287,7 @@ export default function HomePage() {
           <div className="results-grid">
             {cards.map((card) => (
               <article className="card-tile" key={card.id}>
-                {card.image ? <img className="card-art" src={card.image} alt={card.name} /> : null}
+                <CardArt card={card} />
                 <div>
                   <h3>{card.name}</h3>
                   <div className="meta">

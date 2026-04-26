@@ -294,6 +294,27 @@ input {
   background: rgba(24, 34, 48, 0.06);
 }
 
+.card-art-fallback {
+  display: grid;
+  place-content: center;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+  color: var(--ink);
+  background:
+    linear-gradient(160deg, rgba(216, 76, 47, 0.12), rgba(12, 140, 106, 0.1)),
+    rgba(24, 34, 48, 0.04);
+}
+
+.card-art-fallback span {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.card-art-fallback small {
+  color: var(--muted);
+}
+
 .meta {
   color: var(--muted);
   font-size: 0.95rem;
